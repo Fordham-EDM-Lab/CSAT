@@ -287,7 +287,7 @@ def run_apriori_on_data(df, new_df, transactions, minsupport, department_folder,
 
     return export_file_name, department_export_dict, session
 
-def run_separate_mode(departments, min_supports, input_df, output_path, run_mode_var):
+def run_separate_mode(departments, min_supports, input_df, output_path, run_mode_var, concurrency_var):
     """
     Execute the Apriori algorithm for each department separately.
 
@@ -303,8 +303,7 @@ def run_separate_mode(departments, min_supports, input_df, output_path, run_mode
     """
     export_dict = {}
     log_entries = []
-
-    all_data = dataframe_gen(input_df, departments, run_mode_var, output_path)
+    all_data = dataframe_gen(input_df, departments, run_mode_var, output_path, concurrency_var)
 
     for department in departments:
         department_folder = path.join(output_path, department)
@@ -325,7 +324,7 @@ def run_separate_mode(departments, min_supports, input_df, output_path, run_mode
 
     return export_dict, log_entries
 
-def run_together_mode(departments, min_supports, input_df, output_path, run_mode_var):
+def run_together_mode(departments, min_supports, input_df, output_path, run_mode_var, concurrency_var):
     """
     Execute the Apriori algorithm for all departments together.
 
@@ -348,7 +347,7 @@ def run_together_mode(departments, min_supports, input_df, output_path, run_mode
     department_folder = path.join(output_path, department_folder_name)
     makedirs(department_folder, exist_ok=True)
 
-    transactions, df, new_df = dataframe_gen(input_df, departments, run_mode_var, department_folder)
+    transactions, df, new_df = dataframe_gen(input_df, departments, run_mode_var, department_folder, concurrency_var)
 
     for minsupport in min_supports:
         start_time = time.time()
@@ -364,7 +363,7 @@ def run_together_mode(departments, min_supports, input_df, output_path, run_mode
     return export_dict, log_entries
 
 
-def execute_tool(input_df, support_thresholds, departments, run_mode, output_dir):
+def execute_tool(input_df, support_thresholds, departments, run_mode, concurrency_var, output_dir):
     """
     Main function to execute the tool based on the selected mode. It orchestrates the execution of the algorithm,
     stores the results in the specified output directory, and logs the details of the execution.
@@ -389,9 +388,9 @@ def execute_tool(input_df, support_thresholds, departments, run_mode, output_dir
     log_entries = []
 
     if run_mode == "separate":
-        results, log_entries = run_separate_mode(departments, support_thresholds, input_df, output_path, run_mode)
+        results, log_entries = run_separate_mode(departments, support_thresholds, input_df, output_path, run_mode, concurrency_var)
     elif run_mode == "together":
-        results, log_entries = run_together_mode(departments, support_thresholds, input_df, output_path, run_mode)
+        results, log_entries = run_together_mode(departments, support_thresholds, input_df, output_path, run_mode, concurrency_var)
 
     log_filepath = path.join(output_path, "run_log.txt")
     with open(log_filepath, 'w') as log_file:

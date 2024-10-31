@@ -4,7 +4,7 @@ from sys import argv, exit
 from webbrowser import open
 from gsp_algorithm import execute_tool
 import pandas as pd
-from utils import preprocess_time, parse_dates, create_timegroup, get_timegroup_unit
+from utils import validate_data_schema, create_event_order, get_timegroup_unit
 from os import path, makedirs
 
 def print_introduction():
@@ -68,18 +68,18 @@ For more detailed examples, use --manual.""")
         categories = []
 
     df = pd.read_csv(args.input)
+    df, _, is_valid = validate_data_schema(df)
 
-    if 'EventTime' not in df.columns:
-        df, _ = preprocess_time(df)
-    else:
-        df = parse_dates(df, 'EventTime')
+    if not is_valid:
+        print("Invalid data schema. Please check the input file and try again.")
+        exit(1)
 
     # Check if concurrency is enabled
     if args.concurrency:
         if 'TimeGroup' not in df.columns:
             # Prompt for TimeGroup unit if it does not exist
             timegroup_unit = get_timegroup_unit()
-            df = create_timegroup(df, 'EventTime', timegroup_unit)
+            df, _ = create_event_order(df, 'EventTime', timegroup_unit)
 
     # Execute the tool with the provided arguments
     execute_tool(df, support_thresholds, categories, args.mode, args.output)
