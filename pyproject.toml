@@ -12,6 +12,7 @@ and a graphical user interface (GUI) for ease of use.
 """
 authors = [
   { name = "Peyton Lyons", email = "plyons14@fordham.edu" },
+  { name = "Jonathan Mele", email = "jmele3@fordham.edu" },
   { name = "Michael Sluck", email = "msluck@fordham.edu" },
   { name = "Cody Chen", email = "cchen187@fordham.edu" },
   { name = "Fiza Metla", email = "fmetla@fordham.edu" },
@@ -27,26 +28,19 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "bottleneck==1.3.7",
-    "bzip2",
     "numexpr==2.8.7",
     "numpy==1.26.4",
-    "openssl==3.0.13",
     "pandas==2.2.1",
     "python-dateutil==2.8.2",
-    "python-tzdata==2023.3",
     "pytz==2024.1",
-    "requests>2",
     "setuptools==68.2.2",
     "six==1.16.0",
-    "sqlite",
-    "tk==8.6.12",
     "wheel==0.41.2",
-    "zlib",
 ]
 
 [project.scripts]
-gsp-cli = "gsp_toolkit.command_line_interface:main"  # CLI entry point
-gsp-gui = "gsp_toolkit.graphical_interface:main"  # GUI entry point
+gsp-cli = "gsp_toolkit.command_line_interface:main"
+gsp-gui = "gsp_toolkit.graphical_interface:main"
 
 [project.urls]
 "Homepage" = "https://github.com/Fordham-EDM-Lab/course-sequencing-analysis-tool"
