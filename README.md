@@ -8,8 +8,8 @@ The package supports grouping items based on a specified granularity using concu
 
 - **GSP Algorithm**: Analyze sequential patterns using the Generalized Sequential Pattern (GSP) algorithm.
 - **Granularity-Based Grouping**: Use concurrency to group items by a specified time granularity, such as semesters (quarters) or months.
-- **Command-Line Interface (CLI)**: Run the GSP algorithm from the terminal for efficient scripting and automation.
-- **Graphical User Interface (GUI)**: Easily configure and run the algorithm using an interactive graphical interface.
+- **Command-Line Interface**: Run the GSP algorithm from the terminal for efficient scripting and automation.
+- **Graphical User Interface**: Easily configure and run the algorithm using an interactive graphical interface.
 
 ## Installation
 
@@ -30,7 +30,7 @@ The package supports grouping items based on a specified granularity using concu
 
 ## Usage
 
-### Command-Line Interface (CLI)
+### Command-Line Interface
 
 You can run the GSP algorithm using the CLI. Here’s an example:
 
@@ -40,7 +40,7 @@ gsp-cli -i data.csv -s 50,100 -c BIO,CHEM --mode separate -o results --concurren
 
 For more detailed instructions and examples, please refer to the [GSP Toolkit Manual](https://docs.google.com/document/d/1yb6dg26jO_m0ir80vgfoN9ED0RF3bohMhJi0B3aig8w/edit?usp=sharing).
 
-### Graphical User Interface (GUI)
+### Graphical User Interface
 
 Launch the GUI for an easy-to-use interface:
 
