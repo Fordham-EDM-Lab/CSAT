@@ -1,14 +1,15 @@
-# GSP Toolkit for Course Sequencing
+# GSP Toolkit
 
-The **GSP Toolkit** is a Python package that implements the Generalized Sequential Pattern (GSP) algorithm, with an initial focus on sequencing student course data. The toolkit supports both a command-line interface (CLI) and a graphical user interface (GUI), making it easy to use for a wide range of users.
+The **GSP Toolkit** is a Python package that implements the Generalized Sequential Pattern (GSP) algorithm. Originally developed as part of the Course Sequencing Analysis Tool (CSAT) to analyze and sequence student course data, the toolkit has been extended to support more general use cases. It is designed for applications where analyzing sequential patterns is essential, such as course sequencing or other data patterns.
 
-Currently, the primary feature of the toolkit is to sequence and analyze course data using the GSP algorithm.
+The package supports grouping items based on a specified granularity using concurrency and provides both a command-line interface (CLI) and a graphical user interface (GUI).
 
 ## Features
 
-- **GSP Algorithm Implementation**: Discover sequential patterns in course data using the GSP algorithm.
-- **Command-Line Interface (CLI)**: Use the GSP toolkit from the terminal for scripting or automation.
-- **Graphical User Interface (GUI)**: An easy-to-use GUI for non-technical users to explore course sequencing results.
+- **GSP Algorithm**: Analyze sequential patterns using the Generalized Sequential Pattern (GSP) algorithm.
+- **Granularity-Based Grouping**: Use concurrency to group items by a specified time granularity, such as semesters (quarters) or months.
+- **Command-Line Interface (CLI)**: Run the GSP algorithm from the terminal for efficient scripting and automation.
+- **Graphical User Interface (GUI)**: Easily configure and run the algorithm using an interactive graphical interface.
 
 ## Installation
 
@@ -22,7 +23,7 @@ Currently, the primary feature of the toolkit is to sequence and analyze course 
    cd course-sequencing-analysis-tool
    ```
 
-3. Install the required dependencies:
+3. Install the package:
    ```bash
    pip install .
    ```
@@ -31,53 +32,44 @@ Currently, the primary feature of the toolkit is to sequence and analyze course 
 
 ### Command-Line Interface (CLI)
 
-The CLI allows you to run the GSP algorithm on course sequencing data. Here’s an example of how to use it:
+You can run the GSP algorithm using the CLI. Here’s an example:
 
 ```bash
-gsp-cli --input-file courses.csv --output-dir results --min-support 0.5
+gsp-cli -i data.csv -s 50,100 -c BIO,CHEM --mode separate -o results --concurrency
 ```
 
-- `--input-file`: The path to the CSV file containing course data.
-- `--output-dir`: Directory where the results will be saved.
-- `--min-support`: The minimum support threshold for the GSP algorithm.
+For more detailed instructions and examples, please refer to the [GSP Toolkit Manual](https://docs.google.com/document/d/1yb6dg26jO_m0ir80vgfoN9ED0RF3bohMhJi0B3aig8w/edit?usp=sharing).
 
 ### Graphical User Interface (GUI)
 
-To launch the GUI for an easy-to-use interface:
+Launch the GUI for an easy-to-use interface:
 
 ```bash
 gsp-gui
 ```
 
+The GUI allows you to:
+- Load your data file.
+- Set support thresholds and categories.
+- Group items based on granularity (e.g., semester or month).
+
 ## Requirements
 
 - Python 3.10 or later
-- Required dependencies are automatically installed when you run `pip install .`.
+- Dependencies are automatically installed when you run `pip install .`.
 
-## Example
+## Data Requirements
 
-Here’s a simple example of the input course data format (CSV):
+To understand the required data format, refer to the [Data Dictionary](https://docs.google.com/spreadsheets/d/19fIA5eiZxCav0MiElDoTDvuyinyYroxuJF9LWmQxvNc/edit?usp=sharing).
 
-```csv
-SID,CourseCode,TermOrder,Semester,Year
-1,CHEM101,20100,Spring,2010
-1,CHEM102,20101,Summer,2010
-1,PHYS101,20102,Fall,2010
-2,MATH101,20100,Spring,2010
-2,MATH102,20101,Summer,2010
-```
+### Example Datasets
 
-Here:
-- `SID` is the student ID.
-- `CourseCode` is the course identifier.
-- `TermOrder` combines `Year` and `Semester` for ordering courses.
+Example datasets for testing and exploring the GSP Toolkit are available [here on Google Drive](https://drive.google.com/drive/folders/1hyjKf69IY1wbkWwSl0AzG-wJTITOXlIW?usp=sharing).
 
 ## Development Roadmap
 
-This package is currently focused on course sequencing, but future versions will include:
-- A generalized GSP algorithm for other use cases.
-- Additional CLI and GUI options.
-- Improved concurrency support for larger datasets.
+- **Current**: Working on robust testing and validation to implement the general case for sequential pattern analysis, beyond just course sequencing. Focused on ensuring the toolkit handles various data scenarios effectively.
+- **Future**: Finalize packaging and prepare the toolkit for distribution on PyPi (Python Package Index). Additionally, explore ways to optimize the GSP algorithm, such as implementing parallel execution, to improve performance for large datasets.
 
 ## License
 
