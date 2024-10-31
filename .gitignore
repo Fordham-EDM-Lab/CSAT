@@ -38,7 +38,7 @@ htmlcov/
 coverage.xml
 
 # Ignore tests, output, and data directories
-tests/
-output/
-data/
+tests/*
+output/*
+data/*
 *.csv
