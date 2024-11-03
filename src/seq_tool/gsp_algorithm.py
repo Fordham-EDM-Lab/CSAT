@@ -381,7 +381,7 @@ def execute_tool(input_df, support_thresholds, departments, run_mode, concurrenc
     results = {}
 
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    output_folder = f"SAT_Run_{timestamp}"
+    output_folder = f"Run_{timestamp}"
     output_path = path.join(output_dir, output_folder)
     makedirs(output_path, exist_ok=True)
 

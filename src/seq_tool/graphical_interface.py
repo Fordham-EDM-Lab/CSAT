@@ -76,7 +76,7 @@ class SequencingAnalysisTool:
         tk.Button(self.root, text="Browse", command=self.set_output_directory).grid(row=7, column=2)
         
         # Place Run and Help buttons below everything
-        tk.Button(self.root, text="Run cSAT", command=self.run_gsp).grid(row=8, column=0, pady=10)
+        tk.Button(self.root, text="Run Tool", command=self.run_gsp).grid(row=8, column=0, pady=10)
         tk.Button(self.root, text="Help", command=self.open_web).grid(row=8, column=2)
 
         self.run_status_label = tk.Label(self.root, text="")
@@ -209,7 +209,7 @@ class SequencingAnalysisTool:
         selected_categories = [self.categories_listbox.get(i) for i in self.categories_listbox.curselection()]
 
         if not selected_categories and len(self.categories) != 0 and self.is_course_data:
-            tk.messagebox.showwarning("No categories selected", "Please select at least one category to run SAT.")
+            tk.messagebox.showwarning("No categories selected", "Please select at least one category to run the tool.")
         elif not self.min_supports_entry.get():
             tk.messagebox.showwarning("No minimum supports", "Please specify at least one minimum support value.")
         else:
