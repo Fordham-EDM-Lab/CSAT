@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import dateparser
 from hashlib import md5
-from os import path, makedirs
+from os import path, makedirs, getcwd
 
 # A class to create ToolTips
 class ToolTip:
@@ -37,9 +37,9 @@ def save_to_folder(df, folder_path, file_name):
     return df
 
 def save_dataset(df, file_name='preprocessed_data.csv'):
-    save_path = path.join(path.dirname(__file__), '..', '..', 'data')
+    save_path = path.join(getcwd(), 'data')
     df = save_to_folder(df, save_path, file_name)
-    return df, save_path + '/preprocessed_data.csv'
+    return df, save_path + '/' + file_name
 
 def filter_and_export_to_csv(data_dict, min_support, total_transactions, file_name):
     """
@@ -287,8 +287,6 @@ def validate_data_schema(df, gui=False):
         if properties['required'] and col_name not in df.columns:
             missing_required_columns.append(col_name)
         elif col_name in df.columns and not pd.api.types.is_dtype_equal(df[col_name].dtype, properties['dtype']):
-            print(df[col_name].dtype, col_name, properties['dtype'])
-
             try:
                 df[col_name] = df[col_name].astype(properties['dtype'])
             except ValueError:

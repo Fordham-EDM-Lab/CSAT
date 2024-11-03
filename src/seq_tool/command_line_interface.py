@@ -1,21 +1,21 @@
-from os import getcwd
 from argparse import ArgumentParser, RawTextHelpFormatter
 from sys import argv, exit
 from webbrowser import open
-from gsp_algorithm import execute_tool
+from .gsp_algorithm import execute_tool
 import pandas as pd
-from utils import validate_data_schema, create_event_order, get_timegroup_unit
+from .utils import validate_data_schema, create_event_order, get_timegroup_unit
 from os import path, makedirs
 
 def print_introduction():
     introduction_text = """
     ***********************************************************
-    Welcome to the CLI for Course Sequence Analysis Tool (CSAT)
+        Welcome to the CLI for Sequence Analysis Tool (CSAT)
     ***********************************************************
     
-    This tool allows you to analyze course sequences using Apriori-based
-    Generalized Sequential Pattern (GSP) algorithm. Specify input parameters
-    to customize your analysis.
+    This tool enables you to perform sequential pattern analysis on
+    various types of data using the Apriori-based Generalized Sequential
+    Pattern (GSP) algorithm. Specify input parameters to tailor your
+    analysis.
 
     For detailed help on each parameter, use the --help option.
     For usage examples, see the 'Examples' section in the --help output.

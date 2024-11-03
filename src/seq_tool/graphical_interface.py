@@ -1,22 +1,20 @@
-import os
-import csv
 import webbrowser
 import threading
 import tkinter as tk
 from tkinter import filedialog, ttk
 import pandas as pd
-from gsp_algorithm import execute_tool
-from utils import ToolTip, validate_data_schema, get_timegroup_unit, create_event_order, save_dataset
-from os import path, makedirs
+from .gsp_algorithm import execute_tool
+from .utils import ToolTip, validate_data_schema, get_timegroup_unit, create_event_order, save_dataset
+from os import path, makedirs, getcwd
 
-class GSPTool:
+class SequencingAnalysisTool:
     def __init__(self, root):
         self.root = root
         self.file_df = None
         self.results = None
         self.is_course_data = True
         self.concurrent_var = tk.IntVar()  # Future option for toggling concurrency
-        output_path = path.join(path.dirname(__file__), '..', '..', 'output')
+        output_path = path.join(getcwd(), 'output')
         makedirs(path.dirname(output_path), exist_ok=True)
         self.output_directory = output_path
         self.input_file_name = tk.StringVar()
@@ -24,7 +22,7 @@ class GSPTool:
         self.categories = set()
         self.select_all_var = tk.IntVar()
         self.run_mode_var = tk.StringVar(value="together")
-        self.root.title("Sequencing Analysis Tool")
+        self.root.title("Sequence Analysis Tool")
         self.progress = ttk.Progressbar(root, mode='indeterminate')
         self.setup_gui()
 
@@ -52,7 +50,7 @@ class GSPTool:
         self.categories_listbox = tk.Listbox(self.root, selectmode=tk.MULTIPLE, height=5)
         self.categories_listbox.grid(row=4, column=1, rowspan=3)  # Span multiple rows to create more space
         self.categories_listbox.bind('<<ListboxSelect>>', self.update_radio_buttons_state)
-        self.bind_tooltip_events(self.categories_listbox, f"Select one or more category(s) for the GSP algorithm.")
+        self.bind_tooltip_events(self.categories_listbox, f"Select one or more category(s).")
 
         button_frame = tk.Frame(self.root)
         button_frame.grid(row=4, column=2, padx=10)
@@ -78,7 +76,7 @@ class GSPTool:
         tk.Button(self.root, text="Browse", command=self.set_output_directory).grid(row=7, column=2)
         
         # Place Run and Help buttons below everything
-        tk.Button(self.root, text="Run GSP", command=self.run_gsp).grid(row=8, column=0, pady=10)
+        tk.Button(self.root, text="Run cSAT", command=self.run_gsp).grid(row=8, column=0, pady=10)
         tk.Button(self.root, text="Help", command=self.open_web).grid(row=8, column=2)
 
         self.run_status_label = tk.Label(self.root, text="")
@@ -104,9 +102,11 @@ class GSPTool:
 
     def toggle_concurrency(self):
         if self.concurrent_var.get():
+            print("Concurrency enabled.")
             if 'EventOrder' not in self.file_df.columns:
                 self.prompt_timegroup()
         else:
+            print("Concurrency disabled.")
             self.file_df.drop(columns=['EventOrder'], inplace=True)
             df, new_path = save_dataset(self.file_df)
             self.file_df = df
@@ -128,7 +128,7 @@ class GSPTool:
         widget.bind("<Leave>", lambda event: tooltip.hidetip())
 
     def open_web(self):
-        webbrowser.open('https://docs.google.com/document/d/1yb6dg26jO_m0ir80vgfoN9ED0RF3bohMhJi0B3aig8w/edit?usp=sharing')
+        webbrowser.open('https://github.com/Fordham-EDM-Lab/course-sequencing-analysis-tool')
 
     def browse_file(self):
         file_path = filedialog.askopenfilename()
@@ -195,7 +195,7 @@ class GSPTool:
 
     def run_gsp(self):
         def target():
-            self.run_status_label.config(text="Running tool ..")
+            self.run_status_label.config(text="Running tool ...")
             self.progress.grid(row=6, column=0, columnspan=3, sticky=tk.EW)
             self.progress.start()
 
@@ -204,15 +204,12 @@ class GSPTool:
             finally:
                 self.progress.stop()
                 self.progress.grid_forget()
-                self.run_status_label.config(text="GSP finished running.\nVerify results in 'Output Directory'")
+                self.run_status_label.config(text="Tool finished running.\nVerify results in 'Output Directory'")
 
         selected_categories = [self.categories_listbox.get(i) for i in self.categories_listbox.curselection()]
-    
-        print(f"Selected categories: {selected_categories}")
-        print(f"All categories: {self.categories}")
 
         if not selected_categories and len(self.categories) != 0 and self.is_course_data:
-            tk.messagebox.showwarning("No categories selected", "Please select at least one category to run GSP.")
+            tk.messagebox.showwarning("No categories selected", "Please select at least one category to run SAT.")
         elif not self.min_supports_entry.get():
             tk.messagebox.showwarning("No minimum supports", "Please specify at least one minimum support value.")
         else:
@@ -222,6 +219,9 @@ class GSPTool:
             concurrency_var = self.concurrent_var.get()
             threading.Thread(target=target).start()
 
-if __name__ == "__main__":
+def main():
     root = tk.Tk()
-    GSPTool(root)
+    SequencingAnalysisTool(root)
+
+if __name__ == "__main__":
+    main()

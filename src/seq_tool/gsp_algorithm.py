@@ -2,8 +2,8 @@ from os import path, makedirs
 import time
 from collections import defaultdict
 from datetime import datetime
-from data_processing import dataframe_gen
-from utils import filter_and_export_to_csv, export_summary_to_file, generate_hash
+from .data_processing import dataframe_gen
+from .utils import filter_and_export_to_csv, export_summary_to_file, generate_hash
 
 def join_itemsets(itemset):
     """
@@ -381,7 +381,7 @@ def execute_tool(input_df, support_thresholds, departments, run_mode, concurrenc
     results = {}
 
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    output_folder = f"GSP_Run_{timestamp}"
+    output_folder = f"SAT_Run_{timestamp}"
     output_path = path.join(output_dir, output_folder)
     makedirs(output_path, exist_ok=True)
 

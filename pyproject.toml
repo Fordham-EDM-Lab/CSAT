@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "gsp_toolkit"
+name = "seq_tool"
 version = "0.0.1"
 description = """
 A Python package implementing the Generalized Sequential Pattern (GSP) algorithm with concurrency support.
@@ -39,8 +39,8 @@ dependencies = [
 ]
 
 [project.scripts]
-gsp-cli = "gsp_toolkit.command_line_interface:main"
-gsp-gui = "gsp_toolkit.graphical_interface:main"
+csat-cli = "seq_tool.command_line_interface:main"
+csat-gui = "seq_tool.graphical_interface:main"
 
 [project.urls]
 "Homepage" = "https://github.com/Fordham-EDM-Lab/course-sequencing-analysis-tool"
