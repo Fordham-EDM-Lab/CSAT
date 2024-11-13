@@ -59,11 +59,13 @@ class SequencingAnalysisTool:
         self.select_all_checkbox = tk.Checkbutton(button_frame, text="Select All", variable=self.select_all_var, command=self.select_all_categories)
         self.select_all_checkbox.grid(row=0, column=0, pady=2, sticky=tk.W)
 
-        self.run_mode_radio_together = tk.Radiobutton(button_frame, text="Run Together", variable=self.run_mode_var, value="together")
+        self.run_mode_radio_together = tk.Radiobutton(button_frame, text="Together", variable=self.run_mode_var, value="together")
         self.run_mode_radio_together.grid(row=1, column=0, pady=2, sticky=tk.W)
+        self.bind_tooltip_events(self.run_mode_radio_together, "Run the algorithm on selected categories together.")
 
-        self.run_mode_radio_separate = tk.Radiobutton(button_frame, text="Run Separately", variable=self.run_mode_var, value="separate")
+        self.run_mode_radio_separate = tk.Radiobutton(button_frame, text="Separately", variable=self.run_mode_var, value="separate")
         self.run_mode_radio_separate.grid(row=2, column=0, pady=2, sticky=tk.W)
+        self.bind_tooltip_events(self.run_mode_radio_together, "Run the algorithm on selected categories separately.")
 
         self.hide_category_widgets()
 

@@ -16,7 +16,8 @@ authors = [
   { name = "Michael Sluck", email = "msluck@fordham.edu" },
   { name = "Cody Chen", email = "cchen187@fordham.edu" },
   { name = "Fiza Metla", email = "fmetla@fordham.edu" },
-  { name = "James Guest", email = "jguest2@fordham.edu" }
+  { name = "James Guest", email = "jguest2@fordham.edu" },
+  { name = "Mario Marku", email = "mmarku@fordham.edu" }
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
@@ -36,6 +37,7 @@ dependencies = [
     "setuptools==68.2.2",
     "six==1.16.0",
     "wheel==0.41.2",
+    "dateparser==1.0.0"
 ]
 
 [project.scripts]
