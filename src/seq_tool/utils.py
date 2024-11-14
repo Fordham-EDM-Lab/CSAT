@@ -205,22 +205,6 @@ def get_ordering_and_mapping(unique_values, gui=False):
 
     return ordered_mapping
 
-def get_semester_from_month(month, mapping):
-    """
-    Get the last semester that starts before the specified month.
-
-    Args:
-        month (int): The month to use for finding the semester.
-        mapping (dict): A dictionary mapping semesters to their start months.
-    
-    Returns:
-        str: The last semester that starts before the specified month.
-    """
-    for semester, (start_month, _) in mapping.items():
-        if month >= start_month:
-            last_semester = semester
-    return last_semester
-
 def create_event_order(df, time_column='EventTime', timegroup_unit='Y'):
     """
     Creates an 'EventOrder' column based on the specified time grouping unit.
