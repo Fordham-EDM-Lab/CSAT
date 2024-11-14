@@ -104,20 +104,23 @@ class SequencingAnalysisTool:
 
     def toggle_concurrency(self):
         if self.concurrent_var.get():
-            print("Concurrency enabled.")
             if 'EventOrder' not in self.file_df.columns:
                 self.prompt_timegroup()
         else:
-            print("Concurrency disabled.")
-            self.file_df.drop(columns=['EventOrder'], inplace=True)
-            df, new_path = save_dataset(self.file_df)
-            self.file_df = df
-            self.input_file_name.set(new_path)
-            self.validate_categories
+            if 'EventOrder' in self.file_df.columns:
+                self.file_df.drop(columns=['EventOrder'], inplace=True)
+                df, new_path = save_dataset(self.file_df)
+                self.file_df = df
+                self.input_file_name.set(new_path)
+                self.validate_categories
     
     def prompt_timegroup(self):
         """Prompt the user to create the EventOrder column if not already present."""
         unit = get_timegroup_unit(gui=True)
+
+        if not unit:
+            self.concurrent_checkbox.deselect()
+            return
 
         # Call the utility function to create the EventOrder
         df, new_path = create_event_order(self.file_df, timegroup_unit=unit)

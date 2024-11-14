@@ -6,6 +6,8 @@ import dateparser
 from hashlib import md5
 from os import path, makedirs, getcwd
 
+semester_mapping = {}
+
 # A class to create ToolTips
 class ToolTip:
     def __init__(self, widget, text):
@@ -115,42 +117,143 @@ def generate_hash(input_string):
 
 def create_event_time_for_course(df, gui):
     """
-    Create 'EventTime' column based on 'Semester' and 'Year' columns, using user-specified order for semesters.
+    Creates 'EventTime' column based on 'Year' and 'Semester' columns.
 
     Args:
-        df (pd.DataFrame): The dataframe containing course data with 'Year' and 'Semester' columns.
-        gui (bool): Whether to prompt the user in the tkinter GUI for semester order.
-
+        df (pd.DataFrame): The dataframe containing 'Year' and 'Semester'.
+        gui (bool): Whether to prompt the user in the tkinter GUI.
+    
     Returns:
         pd.DataFrame: The dataframe with the new 'EventTime' column.
+    
+    
     """
-    # Prompt user for semester ordering (e.g., ['Spring', 'Summer', 'Fall'])
     unique_semesters = df['Semester'].unique()
-    semester_order = get_ordering(unique_semesters, gui)
+    global semester_mapping
+
+    if not semester_mapping:
+        semester_mapping = get_ordering_and_mapping(unique_semesters, gui=gui)
     
-    # Map semesters to quarter numbers based on order
-    semester_to_quarter = {val: i+1 for i, val in enumerate(semester_order)}
-    
-    # Create 'EventTime' based on Year and quarter mapping (using quarter start dates)
     df['EventTime'] = df.apply(
-        lambda row: pd.Timestamp(f"{row['Year']}-Q{semester_to_quarter.get(row['Semester'], 1)}"),
+        lambda row: f"{row['Year']}-{semester_mapping[row['Semester']][0]}-{semester_mapping[row['Semester']][1]}",
         axis=1
     )
+    df = parse_dates(df, 'EventTime')
+
     return df
+
+def get_ordering_and_mapping(unique_values, gui=False):
+    """
+    Prompt the user to specify the order of unique semester values and 
+    optionally map each semester to a specific month and day.
+    
+    Args:
+        unique_values (list): List of unique values in the 'Semester' column.
+        gui (bool): Whether to use a tkinter GUI for input.
+
+    Returns:
+        dict: A dictionary with ordered semesters mapped to specific dates.
+    """
+    ordered_mapping = {}
+    numbered_values = {str(i+1): v for i, v in enumerate(unique_values)}
+
+    if gui:
+        import tkinter.simpledialog as sd
+        root = tk.Tk()
+        root.withdraw()
+        
+        # Prompt user for order
+        message = "Specify order by entering numbers for each value, separated by commas:\n"
+        for num, value in numbered_values.items():
+            message += f"{num}: {value}\n"
+        ordering_input = sd.askstring("Order Input", message)
+        
+        # Prompt for specific month/day or equal distribution
+        date_option = sd.askstring(
+            "Mapping Option",
+            "Enter 'specific' to map semesters to specific months/days, "
+            "or 'equal' to distribute evenly."
+        )
+    else:
+        # CLI prompts
+        print("Enter the order of semesters by number (e.g., 1,2,3):")
+        for num, value in numbered_values.items():
+            print(f"{num}: {value}")
+        ordering_input = input("Order: ")
+        
+        date_option = input("Enter 'specific' to map each semester to a month/day, or 'equal' to distribute: ")
+
+    # Convert input numbers to ordered semester values
+    ordered_semesters = [numbered_values[num.strip()] for num in ordering_input.split(",") if num.strip() in numbered_values]
+    
+    if date_option.lower() == 'specific':
+        # Specific mapping: ask for month/day for each semester
+        for semester in ordered_semesters:
+            if gui:
+                month = int(sd.askstring(f"Month for {semester}", f"Enter month for {semester} (1-12): "))
+                day = int(sd.askstring(f"Day for {semester}", f"Enter day for {semester} (1-31): "))
+            else:
+                month = int(input(f"Enter month for {semester} (1-12): "))
+                day = int(input(f"Enter day for {semester} (1-31): "))
+            ordered_mapping[semester] = (month, day)
+    else:
+        # Equal distribution: automatically assign evenly spaced months
+        for i, semester in enumerate(ordered_semesters):
+            month = int((i / len(ordered_semesters)) * 12 + 1)  # Spread across months
+            day = 1  # Default day to start of month
+            ordered_mapping[semester] = (month, day)
+
+    return ordered_mapping
+
+def get_semester_from_month(month, mapping):
+    """
+    Get the last semester that starts before the specified month.
+
+    Args:
+        month (int): The month to use for finding the semester.
+        mapping (dict): A dictionary mapping semesters to their start months.
+    
+    Returns:
+        str: The last semester that starts before the specified month.
+    """
+    for semester, (start_month, _) in mapping.items():
+        if month >= start_month:
+            last_semester = semester
+    return last_semester
 
 def create_event_order(df, time_column='EventTime', timegroup_unit='Y'):
     """
-    Creates 'EventOrder' column based on specified timegroup unit and event time column.
-    
+    Creates an 'EventOrder' column based on the specified time grouping unit.
+
     Args:
-        df (pd.DataFrame): The dataframe containing 'EventTime'.
-        time_column (str): Column with datetime values.
-        timegroup_unit (str): Time granularity for grouping ('Y', 'M', 'Q', 'W').
-        
+        df (pd.DataFrame): The dataframe to add the 'EventOrder' column to.
+        time_column (str): The name of the column containing the time information.
+        timegroup_unit (str): The time grouping unit to use for ordering.
+    
     Returns:
         pd.DataFrame: The dataframe with the new 'EventOrder' column.
     """
-    if timegroup_unit == 'Y':
+    global semester_mapping
+    if timegroup_unit == 'S':
+        # Step 1: Create a sorted list of tuples (month, day, name, index)
+        sorted_semesters = sorted(
+            [(v[0], v[1], k, i + 1) for i, (k, v) in enumerate(semester_mapping.items())],
+            key=lambda x: (x[0], x[1])
+        )
+        
+        # Step 2: Determine the closest semester for each EventTime
+        def get_semester(event_time):
+            month, day = event_time.month, event_time.day
+            for sm_month, sm_day, semester_name, semester_index in sorted_semesters:
+                if (month, day) >= (sm_month, sm_day):
+                    closest_semester_index = semester_index
+                else:
+                    break
+            return closest_semester_index
+
+        # Step 3: Generate EventOrder using year and semester index
+        df['EventOrder'] = df[time_column].apply(lambda x: f"{x.year}{get_semester(x):02d}")
+    elif timegroup_unit == 'Y':
         df['EventOrder'] = df[time_column].dt.year.astype(str)
     elif timegroup_unit == 'M':
         df['EventOrder'] = df[time_column].dt.strftime('%Y%m')
@@ -160,24 +263,23 @@ def create_event_order(df, time_column='EventTime', timegroup_unit='Y'):
         df['EventOrder'] = df[time_column].dt.strftime('%Y%W')
     else:
         raise ValueError(f"Unsupported time group unit: {timegroup_unit}")
-    
     return save_dataset(df)
 
 def detect_date_columns(df):
     """
     Use `dateparser` to detect columns that contain date-like values.
-    """
-    exclude_columns = ['ID', 'id', 'Item']
-    date_columns = []
 
-    df_copy = df.copy()
-    
-    for col in df_copy.columns:
-        if col not in exclude_columns:
-            # Try parsing the first 10 non-null values in each column using `dateparser`
-            if df_copy[col].dropna().head(10).apply(lambda x: dateparser.parse(str(x)) is not None).any():
-                date_columns.append(col)
-    
+    Args:
+        df (pd.DataFrame): The dataframe to check for date columns.
+
+    Returns:
+        list: A list of column names that contain date-like values.
+    """
+    exclude_columns = ['ID', 'Item']
+    date_columns = []
+    for col in df.columns:
+        if col not in exclude_columns and df[col].dropna().head(10).apply(lambda x: dateparser.parse(str(x)) is not None).any():
+            date_columns.append(col)
     return date_columns
 
 def parse_dates(df, column_name):
@@ -197,53 +299,55 @@ def parse_dates(df, column_name):
         print(f"Warning: Some dates could not be parsed in the column {column_name}.")
     return df
 
-def get_ordering(unique_values, gui=False):
+def get_timegroup_unit(gui=False):
     """
-    Prompt the user to specify the order of the unique values in the column.
+    Prompts the user to specify the time grouping unit.
 
     Args:
-        unique_values (list): List of unique values in the column.
         gui (bool): Whether to prompt the user in the tkinter GUI.
-
+    
     Returns:
-        list: A list of ordered values (e.g., ['Spring', 'Fall']).
+        str: The time grouping unit.
     """
-    if gui:
-        from tkinter import Tk
-        root = Tk()
-        root.withdraw()  # Hide the root window
-        
-        # Popup message to explain what the user should do
-        message = f"Please enter the order of the following values, separated by commas, from earliest to latest:\n{unique_values}"
-        
-        # Ask the user to provide the order
-        ordering_input = tk.simpledialog.askstring("Specify Order", message)
-        
-        # Convert input into a list of ordered values
-        ordered_values = [val.strip() for val in ordering_input.split(',')]
-    else:
-        # Prompt in CLI
-        print(message)
-        ordering_input = input("Enter the order: ")
-        
-        # Convert input into a list of ordered values
-        ordered_values = [val.strip() for val in ordering_input.split(',')]
-
-    return ordered_values
-
-def get_timegroup_unit(gui=False):
+    isValid = False
+    
     if gui:
         from tkinter import Tk
         root = Tk()
         root.withdraw()
-        message = "Please specify the time grouping unit (e.g., 'Y' for Year, 'M' for Month, 'W' for Week, 'Q' for Quarter)."
+        message = "Please specify the time grouping unit (e.g., 'Y' for Year, 'M' for Month, 'W' for Week, 'Q' for Quarter, 'S' for Semester)."
         timegroup_unit = tk.simpledialog.askstring("Specify Time Group Unit", message)
-    else:
-        print("Please specify the time grouping unit (e.g., 'Y', 'M', 'W', 'Q').")
-        timegroup_unit = input("Enter the time unit: ")
-    return timegroup_unit.strip().upper()
 
-def prompt_user_column_selection(potential_date_columns, columns, gui):
+        # if cancel is clicked
+        if timegroup_unit is None:
+            return None
+    else:
+        print("Please specify the time grouping unit (e.g., 'Y', 'M', 'W', 'Q', 'S').")
+        timegroup_unit = input("Enter the time unit: ")
+    
+    if timegroup_unit.strip().upper() in ['Y', 'M', 'W', 'Q', 'S']:
+        if timegroup_unit.strip().upper() == 'S' and not semester_mapping:
+            print("Semester mapping is required for 'S' time grouping unit.")
+            isValid = False
+        else:
+            isValid = True
+    else:
+        isValid = False
+    
+    return timegroup_unit.strip().upper() if isValid else get_timegroup_unit(gui=gui)
+
+def prompt_user_column_selection(potential_date_columns, columns, gui=False):
+    """
+    Prompts the user to select a column from a list of potential date columns.
+
+    Args:
+        potential_date_columns (list): List of potential date columns.
+        columns (list): List of all columns in the dataset.
+        gui (bool): Whether to prompt the user in the tkinter GUI.
+
+    Returns:
+        str: The name of the selected column.
+    """
     if gui:
         from tkinter import Tk
         root = Tk()
@@ -278,6 +382,9 @@ def validate_data_schema(df, gui=False):
         pd.DataFrame: The corrected dataframe.
         bool: True if the dataframe meets the schema, False if it still doesn't meet requirements.
     """
+    # Clear semester mapping if it exists from previous runs
+    semester_mapping.clear()
+
     data_dict = get_data_dictionary()
     missing_required_columns = []
     incorrect_dtype_columns = []

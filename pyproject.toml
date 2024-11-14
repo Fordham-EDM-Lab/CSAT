@@ -37,7 +37,7 @@ dependencies = [
     "setuptools==68.2.2",
     "six==1.16.0",
     "wheel==0.41.2",
-    "dateparser==1.0.0"
+    "dateparser==1.2.0"
 ]
 
 [project.scripts]
