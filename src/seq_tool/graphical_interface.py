@@ -137,7 +137,7 @@ class SequencingAnalysisTool:
 
     def browse_file(self):
         file_path = filedialog.askopenfilename()
-        df = pd.read_csv(file_path)
+        df = pd.read_csv(file_path, low_memory=False)
 
         # Validate and attempt to correct the dataframe schema
         df, file_path, is_valid = validate_data_schema(df, gui=True)

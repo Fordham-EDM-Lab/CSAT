@@ -67,7 +67,7 @@ For more detailed examples, use --manual.""")
     else:
         categories = []
 
-    df = pd.read_csv(args.input)
+    df = pd.read_csv(args.input, low_memory=False)
     df, _, is_valid = validate_data_schema(df)
 
     if not is_valid:
