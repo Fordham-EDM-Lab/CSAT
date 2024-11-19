@@ -46,7 +46,7 @@ The GUI allows you to:
 ## Requirements
 
 - Python 3.10 or later
-- Dependencies are automatically installed when you run `pip install .`.
+- Dependencies are automatically installed when you run `python3 -m pip install seq-tool`.
 
 ## Data Requirements
 
