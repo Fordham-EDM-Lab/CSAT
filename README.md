@@ -13,20 +13,10 @@ The package supports grouping items based on a specified granularity using concu
 
 ## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Fordham-EDM-Lab/course-sequencing-analysis-tool.git
-   ```
-
-2. Navigate to the project directory:
-   ```bash
-   cd course-sequencing-analysis-tool
-   ```
-
-3. Install the package:
-   ```bash
-   pip install .
-   ```
+Install via command-line from PyPi:
+```bash
+python3 -m pip install seq-tool
+```
 
 ## Usage
 
