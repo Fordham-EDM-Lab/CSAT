@@ -28,7 +28,7 @@ You can run the GSP algorithm using the CLI. Here’s an example:
 seq-cli -i data.csv -s 50,100 -c BIO,CHEM --mode separate -o results --concurrency
 ```
 
-For more detailed instructions and examples, please refer to the [cSAT Manual](https://docs.google.com/document/d/1yb6dg26jO_m0ir80vgfoN9ED0RF3bohMhJi0B3aig8w/edit?usp=sharing).
+For more detailed instructions and examples, please refer to the [CSAT Manual](https://docs.google.com/document/d/1yb6dg26jO_m0ir80vgfoN9ED0RF3bohMhJi0B3aig8w/edit?usp=sharing).
 
 ### Graphical User Interface
 
@@ -54,12 +54,12 @@ To understand the required data format, refer to the [Data Dictionary](https://d
 
 ### Example Datasets
 
-Example datasets for testing and exploring the cSAT are available [here on Google Drive](https://drive.google.com/drive/folders/1hyjKf69IY1wbkWwSl0AzG-wJTITOXlIW?usp=sharing).
+Example datasets for testing and exploring the CSAT are available [here on Google Drive](https://drive.google.com/drive/folders/1hyjKf69IY1wbkWwSl0AzG-wJTITOXlIW?usp=sharing).
 
 ## Development Roadmap
 
-- **Current**: Working on testing and validation on the general case for sequential pattern analysis. Determining how to include the time (span?) to better understand the output.
-- **Future**: Finalize packaging and prepare the toolkit for distribution on PyPi (Python Package Index). Additionally, explore ways to optimize the GSP algorithm, such as implementing parallel execution, to improve performance for large datasets.
+- **Current**: Exploring runtime. Potentially find ways to optimize the algorithm to improve performance for large datasets, such as parallel execution.
+- **Future**: Determining how to include the time (span?) to better understand the output.
 
 ## License
 
