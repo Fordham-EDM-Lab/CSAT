@@ -28,7 +28,7 @@ You can run the GSP algorithm using the CLI. Here’s an example:
 seq-cli -i data.csv -s 50,100 -c BIO,CHEM --mode separate -o results --concurrency
 ```
 
-For more detailed instructions and examples, please refer to the [CSAT Manual](https://docs.google.com/document/d/1yb6dg26jO_m0ir80vgfoN9ED0RF3bohMhJi0B3aig8w/edit?usp=sharing).
+For more detailed instructions and examples, please refer to the [CSAT Manual](https://drive.google.com/file/d/1Mt1-W6ZfwCeUzJdNsK4tcwasUU9xYLC0/view).
 
 ### Graphical User Interface
 
