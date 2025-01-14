@@ -1,0 +1,3 @@
+[console_scripts]
+seq-cli = seq_tool.command_line_interface:main
+seq-gui = seq_tool.graphical_interface:main

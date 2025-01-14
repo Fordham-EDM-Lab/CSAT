@@ -24,6 +24,7 @@ dist/
 # Local Python config files (optional)
 .env
 *.env
+env/
 
 # Jupyter Notebook checkpoints (if using Jupyter)
 .ipynb_checkpoints/

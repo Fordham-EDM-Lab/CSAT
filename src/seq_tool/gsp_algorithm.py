@@ -166,82 +166,85 @@ def prune_candidates(count, minsupport):
             itemset.append(i)     
     return itemset
 
-def count_subset(candidate, length, df):
+def count_subset(candidate, length, df, batch=None):
     """
-    Count occurrences of candidate subsets in the data.
+    Count occurrences of candidate subsets in the data, with optional batch processing.
 
     Args:
         candidate (list): List of candidate itemsets.
         length (int): Length of the itemsets.
-        df (DataFrame): DataFrame containing the data.
+        df (DataFrame): Full DataFrame containing the data.
+        batch (list): Optional batch of the DataFrame to process instead of the full dataset.
 
     Returns:
         dict: Dictionary containing the count of occurrences for each candidate subset.
     """
     Lk = defaultdict(int)
-    res = [i.split("|") for i in df]
-    candidate_set = [i.replace(" ","").split("|")  for i in candidate]   
-   
+    res = [i.split("|") for i in (batch if batch else df)] 
+    candidate_set = [i.replace(" ", "").split("|") for i in candidate]
+
     for row in range(len(res)):
-        data = res[row] 
-        for item in range(0, length):         
-            item1 = candidate_set[item]                         
-            z = 0 
-            counter = 0
+        data = res[row]
+        for item in range(0, length):
+            item1 = candidate_set[item]
             if len(data) >= len(item1):
-                for i in range(len(item1)):        
-                    block1= item1[i]                
-                    block1 = block1.split(",")
-                    for j in range(z, len(data)):   
-                        block2 = data[j]
-                        block2 = block2.split(",")
+                z = 0
+                counter = 0
+                for i in range(len(item1)):
+                    block1 = item1[i].split(",")
+                    for j in range(z, len(data)):
+                        block2 = data[j].split(",")
                         if len(block2) >= len(block1):
-                            w = 0
-                            sub_counter = 0
-                            for k in range(len(block1)):
-                                for l in range(w, len(block2)):
-                                    if block1[k] == block2[l]:
-                                        sub_counter += 1
-                                        if w != len(block2):
-                                            w = l + 1
-                                        break
+                            sub_counter = sum(1 for k in block1 if k in block2)
                             if sub_counter == len(block1):
-                                counter +=1 
-                                if z != len(data):
-                                    z = j + 1 
+                                counter += 1
+                                z = j + 1
                                 break
                 if counter == len(item1):
-                    key = (candidate[item])
-                    Lk[key] +=1
-    return Lk                
+                    Lk[candidate[item]] += 1
+    return Lk
+
                             
-def apriori_algorithm(candidate_itemsets, min_support, k_value, dataframe): 
+def apriori_algorithm(candidate_itemsets, min_support, k_value, dataframe, batch_size=1000):
     """
-    Runs the Apriori algorithm to determine frequent itemsets.
+    Runs the Apriori algorithm with batch processing for counting.
 
     Args:
         candidate_itemsets (list): List of candidate itemsets.
         min_support (float): Minimum support threshold.
-        k_value (int): The current size of the itemsets being processed.
-        dataframe (pd.DataFrame): The DataFrame containing the transaction data.
+        k_value (int): Current size of the itemsets being processed.
+        dataframe (list): List of transactions or event groups.
+        batch_size (int): Size of batches for processing.
 
     Returns:
         dict: A dictionary containing frequent itemsets and their counts.
     """
     results_dict = {}
-    
-    while candidate_itemsets:                                         
-        column_name = f"Freq {k_value}-Itemsets"
-        itemset_count = count_subset(candidate_itemsets, len(candidate_itemsets), dataframe)               
-        frequent_itemsets = prune_candidates(itemset_count, min_support)
-        candidate_itemsets = join_itemsets(frequent_itemsets) 
 
-        if candidate_itemsets:                                  
+    while candidate_itemsets:
+        column_name = f"Freq {k_value}-Itemsets"
+        itemset_count = defaultdict(int)
+
+        # Batch processing for counting
+        num_batches = (len(dataframe) + batch_size - 1) // batch_size
+        for batch_idx in range(num_batches):
+            batch = dataframe[batch_idx * batch_size : (batch_idx + 1) * batch_size]
+            batch_counts = count_subset(candidate_itemsets, len(candidate_itemsets), dataframe, batch=batch)
+
+            for item, count in batch_counts.items():
+                itemset_count[item] += count
+
+        frequent_itemsets = prune_candidates(itemset_count, min_support)
+
+        if frequent_itemsets:
             results_dict[column_name] = itemset_count
-        
+
+        candidate_itemsets = join_itemsets(frequent_itemsets)
+
         k_value += 1
-    
+
     return results_dict
+
 
 def run_apriori_on_data(df, new_df, transactions, minsupport, department_folder, department_name, start_time, output_path):
     """
