@@ -1,0 +1,1 @@
+Min Support: 100, Runtime: 118.15 seconds, CSV: 308741256037920224a6b27a10de1c14_100.csv

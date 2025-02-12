@@ -19,10 +19,15 @@ def dataframe_gen(input_df, categories, run_mode, category_folder, concurrency=F
         """Process the data, including sorting and resetting the index."""
         df = df.reset_index(drop=True)
 
+        # Convert EventTime to datetime format
+        df['EventTime'] = pd.to_datetime(df['EventTime'], errors='coerce', dayfirst=True)
+
         if concurrency:
-            # Separate EventOrder into Year and Granularity for sorting
-            df['Year'] = df['EventOrder'].astype(str).str[:4].astype(int)
-            df['Granularity'] = df['EventOrder'].astype(str).str[4:].astype(int)
+            # Extract Year using pandas datetime functions
+            df['Year'] = df['EventTime'].dt.year
+
+            # Keep the previous logic for granularity (if applicable)
+            df['Granularity'] = df['EventOrder'].astype(str).str[4:].replace('', None).astype(float)
 
             # Sort by Year and Granularity
             sorted_df = df.sort_values(by=['Year', 'Granularity', 'Item'], ascending=[True, True, True])
@@ -43,6 +48,7 @@ def dataframe_gen(input_df, categories, run_mode, category_folder, concurrency=F
         delimiter_df = insert_delimiter(grouped_df, category_folder, concurrency)
 
         return transactions, grouped_df, delimiter_df
+
 
     # Check if 'Category' exists in the dataframe
     if 'Category' in input_df.columns and categories:
