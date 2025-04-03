@@ -1,4 +1,5 @@
 import tkinter as tk
+from customtkinter import CTkInputDialog
 import json
 import pandas as pd
 import numpy as np
@@ -158,49 +159,62 @@ def get_ordering_and_mapping(unique_values, gui=False):
     numbered_values = {str(i+1): v for i, v in enumerate(unique_values)}
 
     if gui:
-        import tkinter.simpledialog as sd
-        root = tk.Tk()
-        root.withdraw()
-        
-        # Prompt user for order
+        # Ask for semester order
         message = "Specify order by entering numbers for each value, separated by commas:\n"
         for num, value in numbered_values.items():
             message += f"{num}: {value}\n"
-        ordering_input = sd.askstring("Order Input", message)
-        
-        # Prompt for specific month/day or equal distribution
-        date_option = sd.askstring(
-            "Mapping Option",
-            "Enter 'specific' to map semesters to specific months/days, "
-            "or 'equal' to distribute evenly."
+
+        dialog = CTkInputDialog(text=message, title="Order Input")
+        ordering_input = dialog.get_input()
+        if not ordering_input:
+            return {}
+
+        # Ask for mapping method
+        dialog = CTkInputDialog(
+            text="Enter 'specific' to map semesters to specific months/days, or 'equal' to distribute evenly.",
+            title="Mapping Option"
         )
+        date_option = dialog.get_input()
+        if not date_option:
+            return {}
+
     else:
         # CLI prompts
         print("Enter the order of semesters by number (e.g., 1,2,3):")
         for num, value in numbered_values.items():
             print(f"{num}: {value}")
         ordering_input = input("Order: ")
-        
         date_option = input("Enter 'specific' to map each semester to a month/day, or 'equal' to distribute: ")
 
     # Convert input numbers to ordered semester values
     ordered_semesters = [numbered_values[num.strip()] for num in ordering_input.split(",") if num.strip() in numbered_values]
-    
+
     if date_option.lower() == 'specific':
-        # Specific mapping: ask for month/day for each semester
         for semester in ordered_semesters:
             if gui:
-                month = int(sd.askstring(f"Month for {semester}", f"Enter month for {semester} (1-12): "))
-                day = int(sd.askstring(f"Day for {semester}", f"Enter day for {semester} (1-31): "))
+                # Month prompt
+                dialog = CTkInputDialog(text=f"Enter month for {semester} (1-12):", title=f"Month for {semester}")
+                month_input = dialog.get_input()
+                if not month_input:
+                    return {}
+                month = int(month_input)
+
+                # Day prompt
+                dialog = CTkInputDialog(text=f"Enter day for {semester} (1-31):", title=f"Day for {semester}")
+                day_input = dialog.get_input()
+                if not day_input:
+                    return {}
+                day = int(day_input)
             else:
                 month = int(input(f"Enter month for {semester} (1-12): "))
                 day = int(input(f"Enter day for {semester} (1-31): "))
             ordered_mapping[semester] = (month, day)
+
     else:
         # Equal distribution: automatically assign evenly spaced months
         for i, semester in enumerate(ordered_semesters):
-            month = int((i / len(ordered_semesters)) * 12 + 1)  # Spread across months
-            day = 1  # Default day to start of month
+            month = int((i / len(ordered_semesters)) * 12 + 1)
+            day = 1
             ordered_mapping[semester] = (month, day)
 
     return ordered_mapping
@@ -251,7 +265,7 @@ def create_event_order(df, time_column='EventTime', timegroup_unit='Y'):
 
 def detect_date_columns(df):
     """
-    Use `dateparser` to detect columns that contain date-like values.
+    Detect columns that contain date-like or UNIX timestamp values.
 
     Args:
         df (pd.DataFrame): The dataframe to check for date columns.
@@ -261,14 +275,36 @@ def detect_date_columns(df):
     """
     exclude_columns = ['ID', 'Item']
     date_columns = []
+
     for col in df.columns:
-        if col not in exclude_columns and df[col].dropna().head(10).apply(lambda x: dateparser.parse(str(x)) is not None).any():
+        if col in exclude_columns:
+            continue
+
+        sample_values = df[col].dropna().head(10)
+
+        def looks_like_a_date(x):
+            try:
+                # First try dateparser
+                if isinstance(x, str) and dateparser.parse(x):
+                    return True
+                # Try converting stringified numeric timestamp
+                if isinstance(x, str) and x.isdigit():
+                    x = int(x)
+                # UNIX timestamp range check
+                if isinstance(x, (int, float, np.integer, np.floating)):
+                    return 1e8 < x < 1e14  # plausible UNIX timestamp range
+                return False
+            except Exception:
+                return False
+
+        if sample_values.apply(looks_like_a_date).any():
             date_columns.append(col)
+
     return date_columns
 
 def parse_dates(df, column_name):
     """
-    Parses dates in the specified column using dateparser.
+    Parses dates in the specified column using dateparser or numeric timestamp logic.
 
     Args:
         df (pd.DataFrame): The dataframe to parse.
@@ -277,8 +313,34 @@ def parse_dates(df, column_name):
     Returns:
         pd.DataFrame: The dataframe with the 'EventTime' column added or corrected.
     """
+    def smart_parse(x):
+        try:
+            if pd.isna(x) or x == '':
+                return np.nan
+
+            # Try UNIX-style numeric timestamp
+            if isinstance(x, (int, float, np.integer, np.floating)):
+                if x > 1e12:
+                    return pd.to_datetime(x, unit='ms', errors='coerce')
+                elif x > 1e8:  # Adjusted to allow 1970s-2000s
+                    return pd.to_datetime(x, unit='s', errors='coerce')
+
+            # Handle stringified numeric values
+            if isinstance(x, str) and x.isdigit():
+                x = int(x)
+                if x > 1e12:
+                    return pd.to_datetime(x, unit='ms', errors='coerce')
+                elif x > 1e8:
+                    return pd.to_datetime(x, unit='s', errors='coerce')
+
+            # Otherwise, parse as a natural date string
+            return dateparser.parse(str(x))
+        except Exception:
+            return np.nan
+
     df[column_name] = df[column_name].replace('', np.nan)
-    df['EventTime'] = pd.to_datetime(df[column_name].apply(lambda x: dateparser.parse(x) if pd.notna(x) else np.nan), errors='coerce')
+    df['EventTime'] = df[column_name].apply(smart_parse)
+
     if df['EventTime'].isna().sum() > 0:
         print(f"Warning: Some dates could not be parsed in the column {column_name}.")
     return df
@@ -296,13 +358,12 @@ def get_timegroup_unit(gui=False):
     isValid = False
     
     if gui:
-        from tkinter import Tk
-        root = Tk()
-        root.withdraw()
-        message = "Please specify the time grouping unit (e.g., 'Y' for Year, 'M' for Month, 'W' for Week, 'Q' for Quarter, 'S' for Semester)."
-        timegroup_unit = tk.simpledialog.askstring("Specify Time Group Unit", message)
+        dialog = CTkInputDialog(
+            text="Please specify the time grouping unit (e.g., 'Y' for Year, 'M' for Month, 'W' for Week, 'Q' for Quarter, 'S' for Semester).",
+            title="Specify Time Group Unit"
+        )
+        timegroup_unit = dialog.get_input()
 
-        # if cancel is clicked
         if timegroup_unit is None:
             return None
     else:
@@ -333,17 +394,15 @@ def prompt_user_column_selection(potential_date_columns, columns, gui=False):
         str: The name of the selected column.
     """
     if gui:
-        from tkinter import Tk
-        root = Tk()
-        root.withdraw()
-
         message = (f"Multiple columns were detected that may represent time-based information: {potential_date_columns}.\n\n"
-                   "Please select the column that represents the time or date you want to use for ordering events.")
+                "Please select the column that represents the time or date you want to use for ordering events.")
         
-        column_name = tk.simpledialog.askstring("Select Time Column", message)
-        
+        dialog = CTkInputDialog(text=message, title="Select Time Column")
+        column_name = dialog.get_input()
+
         if column_name not in columns:
             raise ValueError(f"Column '{column_name}' is not in the dataset.")
+
     else:
         print(f"Multiple columns were detected that may represent time-based information: {potential_date_columns}")
         column_name = input("Type the column name: ")

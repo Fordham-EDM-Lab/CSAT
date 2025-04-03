@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seq_tool"
-version = "0.0.6"
+version = "0.0.7"
 description = """
 A Python package implementing the Generalized Sequential Pattern (GSP) algorithm with concurrency support.
 Includes optional features for course sequencing analysis, and provides both a command-line interface (CLI) 
@@ -37,7 +37,8 @@ dependencies = [
     "setuptools==68.2.2",
     "six==1.16.0",
     "wheel==0.41.2",
-    "dateparser==1.2.0"
+    "dateparser==1.2.0",
+    "customtkinter==5.2.2"
 ]
 
 [project.scripts]
